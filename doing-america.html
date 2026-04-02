@@ -479,23 +479,46 @@ main { max-width: 820px; margin: 0 auto; padding: 40px 18px 60px; }
       <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#7a96a6;">Trip Route Map</span>
     </div>
 
-    <!-- Tap to open full route in Google Maps -->
-    <a href="https://www.google.com/maps/dir/Cresskill,+NJ/Luray+Caverns,+Luray,+VA/Shenandoah+River+Outfitters,+Luray,+VA/Kitty+Hawk+Kites,+Kill+Devil+Hills,+NC/Jockey+Ridge+State+Park,+Nags+Head,+NC/Corolla,+NC/Jolly+Roger+Speedworld,+Ocean+City,+MD/Cresskill,+NJ" target="_blank" style="display:block;text-decoration:none;">
-      <div style="border-radius:16px;overflow:hidden;border:1.5px solid #e2d9ce;box-shadow:0 2px 16px rgba(24,32,46,0.08);position:relative;background:#e8f0f8;">
-        <!-- Static map via staticmap -->
-        <img src="https://staticmap.openstreetmap.de/staticmap.php?center=37.5,-76.5&zoom=6&size=800x420&maptype=mapnik&markers=40.928,-73.960,red-pushpin%7C38.665,-78.435,blue-pushpin%7C35.958,-75.624,blue-pushpin%7C36.378,-75.831,blue-pushpin%7C38.337,-75.085,blue-pushpin&path=color:0xe8920aff,weight:3,fillcolor:0x00000000%7C40.928,-73.960%7C38.665,-78.435%7C35.958,-75.624%7C36.378,-75.831%7C38.337,-75.085%7C40.928,-73.960"
-             onerror="this.style.display='none';document.getElementById('mapfallback').style.display='flex';"
-             style="width:100%;height:420px;object-fit:cover;display:block;" alt="Trip route map" />
-        <div id="mapfallback" style="display:none;height:420px;background:linear-gradient(135deg,#e8f4f8,#d4e8f0);align-items:center;justify-content:center;flex-direction:column;gap:12px;">
-          <div style="font-size:48px">🗺️</div>
-          <div style="font-size:15px;font-weight:600;color:#2565a0">Tap to open route in Google Maps</div>
-          <div style="font-size:12px;color:#7a96a6">NJ → Luray → OBX → Ocean City → Home</div>
-        </div>
-        <div style="position:absolute;bottom:12px;right:12px;background:#2565a0;color:white;font-size:12px;font-weight:600;padding:8px 14px;border-radius:100px;display:flex;align-items:center;gap:6px;">
-          🗺️ Open Full Route
-        </div>
-      </div>
-    </a>
+    <!-- Interactive Leaflet map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div style="border-radius:16px;overflow:hidden;border:1.5px solid #e2d9ce;box-shadow:0 2px 16px rgba(24,32,46,0.08);position:relative;">
+      <div id="tripMap" style="width:100%;height:420px;"></div>
+      <script>
+        (function() {
+          var map = L.map('tripMap', { zoomControl: true, scrollWheelZoom: false }).setView([38.4, -76.5], 6);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+            maxZoom: 18
+          }).addTo(map);
+
+          var stops = [
+            { latlng: [40.928, -73.960], emoji: '🏠', label: 'Cresskill, NJ', sub: 'Start · Apr 1' },
+            { latlng: [38.665, -78.435], emoji: '🦇', label: 'Luray, VA',      sub: 'Apr 2–3' },
+            { latlng: [35.958, -75.624], emoji: '🌊', label: 'Nags Head, NC',  sub: 'Apr 3–4' },
+            { latlng: [38.337, -75.085], emoji: '🎡', label: 'Ocean City, MD', sub: 'Apr 4–5' }
+          ];
+
+          var routeCoords = stops.map(function(s) { return s.latlng; });
+          routeCoords.push([40.928, -73.960]); // close loop back home
+          L.polyline(routeCoords, { color: '#e8920a', weight: 4, opacity: 0.9, dashArray: '10, 6' }).addTo(map);
+
+          stops.forEach(function(stop, i) {
+            var isHome = i === 0;
+            var icon = L.divIcon({
+              html: '<div style="background:' + (isHome ? '#2565a0' : '#e8920a') + ';color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">' + stop.emoji + '</div>',
+              className: '', iconSize: [32, 32], iconAnchor: [16, 16]
+            });
+            L.marker(stop.latlng, { icon: icon }).addTo(map)
+              .bindPopup('<b>' + stop.label + '</b><br><span style="font-size:11px;color:#666">' + stop.sub + '</span>');
+          });
+        })();
+      </script>
+      <a href="https://www.google.com/maps/dir/Cresskill,+NJ/Luray+Caverns,+Luray,+VA/Kitty+Hawk+Kites,+Kill+Devil+Hills,+NC/Jockey+Ridge+State+Park,+Nags+Head,+NC/Jolly+Roger+Speedworld,+Ocean+City,+MD/Cresskill,+NJ" target="_blank"
+         style="position:absolute;bottom:12px;right:12px;background:#2565a0;color:white;font-size:12px;font-weight:600;padding:8px 14px;border-radius:100px;display:flex;align-items:center;gap:6px;text-decoration:none;z-index:1000;">
+        🗺️ Open Full Route
+      </a>
+    </div>
 
     <!-- Quick links grid -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
